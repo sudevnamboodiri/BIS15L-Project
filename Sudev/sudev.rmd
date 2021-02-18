@@ -1,0 +1,53 @@
+# BIS15L-Project
+```{r}
+library(tidyverse)
+library(janitor)
+library(here)
+library(naniar)
+
+```
+
+```{r}
+#Reading the two CSV
+
+longitudinal <- readr::read_csv('data/oasis_longitudinal.csv')
+cross_sectional <- readr::read_csv('data/oasis_cross-sectional.csv')
+
+
+```{r}
+#Taking a peek at the data
+
+glimpse(longitudinal)
+glimpse(cross_sectional)
+```
+```{r}
+longitudinal %>%
+  filter(Visit == 5) %>%
+  ggplot(aes(x = nWBV, fill = Group)) + geom_histogram(alpha = .7) + facet_wrap(~Group) 
+  
+
+longitudinal %>%
+  filter(Visit<=3) %>%
+  group_by(Visit, Group)%>%
+  summarise(mean_weight = mean(nWBV)) %>%
+  ggplot(aes(x = Visit, y = mean_weight)) + geom_line() + facet_wrap(~Group) 
+
+
+#longitudinal %>%
+ # filter(Group == "Converted") %>%
+#  ggplot(aes(x = Visit, y = nWBV, color = `Subject ID`)) + geom_line() + geom_point()
+
+
+
+
+```
+
+```{r}
+longitudinal %>%
+  filter(nWBV <= .70) %>%
+  group_by(Group) %>%
+  count()
+  
+```
+
+
