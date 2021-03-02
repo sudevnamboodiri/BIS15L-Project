@@ -1,9 +1,11 @@
 # BIS15L-Project
 ```{r}
 library(tidyverse)
-library(janitor)
-library(here)
+library(shiny)
+library(shinydashboard)
 library(naniar)
+library(lubridate)
+library(here)
 
 ```
 
@@ -22,31 +24,57 @@ glimpse(cross_sectional)
 ```
 ```{r}
 longitudinal %>%
-  filter(Visit == 5) %>%
-  ggplot(aes(x = nWBV, fill = Group)) + geom_histogram(alpha = .7) + facet_wrap(~Group) 
-  
+  filter(Group == 'Demented' | Group == 'Converted') %>%
+  ggplot(aes(x = SES)) + geom_bar()
+
+
 
 longitudinal %>%
-  filter(Visit<=3) %>%
-  group_by(Visit, Group)%>%
-  summarise(mean_weight = mean(nWBV)) %>%
-  ggplot(aes(x = Visit, y = mean_weight)) + geom_line() + facet_wrap(~Group) 
-
-
-#longitudinal %>%
- # filter(Group == "Converted") %>%
-#  ggplot(aes(x = Visit, y = nWBV, color = `Subject ID`)) + geom_line() + geom_point()
-
-
+  filter(Group == 'Demented' | Group == 'Converted') %>%
+  ggplot(aes(x = Age)) + geom_bar()
 
 
 ```
 
 ```{r}
-longitudinal %>%
-  filter(nWBV <= .70) %>%
-  group_by(Group) %>%
-  count()
+
+longitudinal%>%
+  filter(SES==2) %>%
+  nrow()
+
+
+ui <- fluidPage(
+    selectInput("SES", "Select Economic Status", choices=unique(longitudinal$SES)),
+    selectInput("Age", "Select Age", choices = c("50-60", "60-70", "70-80", "80-90")),
+                
+  textOutput("result")
+  
+)
+
+
+
+server <- function(input, output, session) {
+  
+
+  output$result <- renderText({
+    longitudinal %>%
+    filter(SES==input$SES) %>%
+    nrow()
+  })
+
+  output$result2 <- renderText({
+    longitudinal %>%
+    filter(SES==input$SES) %>%
+    filter(Group=="Demented") %>%
+    nrow()
+  })
+  
+  # stop the app when we close it
+  session$onSessionEnded(stopApp)
+}
+
+
+shinyApp(ui, server)
   
 ```
 
