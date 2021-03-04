@@ -11,12 +11,11 @@ library(here)
 
 ```{r}
 #Reading the two CSV
+setwd("..")
+longitudinal <- readr::read_csv(here('data','oasis_longitudinal.csv'))
+cross_sectional <- readr::read_csv(here('data','oasis_cross-sectional.csv'))
 
-longitudinal <- readr::read_csv('data/oasis_longitudinal.csv')
-cross_sectional <- readr::read_csv('data/oasis_cross-sectional.csv')
 
-
-```{r}
 #Taking a peek at the data
 
 glimpse(longitudinal)
@@ -25,23 +24,23 @@ glimpse(cross_sectional)
 ```{r}
 longitudinal %>%
   filter(Group == 'Demented' | Group == 'Converted') %>%
-  ggplot(aes(x = SES)) + geom_bar()
+  ggplot(aes(x = SES)) + geom_bar() + labs(title = "Distribution of people with dementia by socio economic status (SES)")
 
 
 
 longitudinal %>%
   filter(Group == 'Demented' | Group == 'Converted') %>%
-  ggplot(aes(x = Age)) + geom_bar()
+  ggplot(aes(x = Age)) + geom_bar() + labs(title = "Distribution of people with dementia by age")
 
 
 ```
 
 ```{r}
 
-longitudinal%>%
+n_patients <- longitudinal%>%
   filter(SES==2) %>%
   nrow()
-
+cat(n_patients,"fit listed criteria")
 
 ui <- fluidPage(
     selectInput("SES", "Select Economic Status", choices=unique(longitudinal$SES)),
@@ -55,19 +54,22 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
   
+numpatients <-  reactive({longitudinal %>%
+    filter(SES==input$SES) %>%
+    nrow()
+    })
 
+numdemented <-  reactive({longitudinal %>%
+    filter(SES==input$SES) %>%
+    filter(Group=='Demented') %>%
+    nrow()
+    })
+  
   output$result <- renderText({
-    longitudinal %>%
-    filter(SES==input$SES) %>%
-    nrow()
+    c(numpatients(),"patients meet listed search criteria, out of which", numdemented(), "have dementia or approximately", round((numdemented()/numpatients())*100), "% of the sample")
   })
 
-  output$result2 <- renderText({
-    longitudinal %>%
-    filter(SES==input$SES) %>%
-    filter(Group=="Demented") %>%
-    nrow()
-  })
+ 
   
   # stop the app when we close it
   session$onSessionEnded(stopApp)
