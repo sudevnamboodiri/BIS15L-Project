@@ -37,14 +37,12 @@ longitudinal %>%
 
 ```{r}
 
-n_patients <- longitudinal%>%
-  filter(SES==2) %>%
-  nrow()
-cat(n_patients,"fit listed criteria")
 
 ui <- fluidPage(
-    selectInput("SES", "Select Economic Status", choices=unique(longitudinal$SES)),
-    selectInput("Age", "Select Age", choices = c("50-60", "60-70", "70-80", "80-90")),
+    selectInput("nWBVMin", "Lower bound of normalized brain weight on first visit", choices=c("0.7","0.72","0.74","0.76","0.78","0.8","0.82")),
+     selectInput("nWBVMax", "Upper bound of normalized brain weight on first visit",    choices=c("0.7","0.72","0.74","0.76","0.78","0.8","0.82","0.84")),
+    selectInput("AgeMin", "Select Age Min", choices = c("50", "60", "70", "80")),
+    selectInput("AgeMax", "Select Age Max", choices = c("50", "60", "70", "80", "90")),
                 
   textOutput("result")
   
@@ -54,14 +52,20 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
   
+
+  
 numpatients <-  reactive({longitudinal %>%
-    filter(SES==input$SES) %>%
+    filter(Visit==1) %>%
+    filter(nWBV>=input$nWBVMin & nWBV<= input$nWBVMax) %>%
+    filter(Age>=input$AgeMin & Age<= input$AgeMax)%>%
     nrow()
     })
 
 numdemented <-  reactive({longitudinal %>%
-    filter(SES==input$SES) %>%
-    filter(Group=='Demented') %>%
+    filter(Visit==1) %>%
+    filter(nWBV>=input$nWBVMin & nWBV<= input$nWBVMax) %>%
+    filter(Age>=input$AgeMin & Age<= input$AgeMax) %>%
+    filter(Group=='Demented' | Group == 'Converted') %>%
     nrow()
     })
   
